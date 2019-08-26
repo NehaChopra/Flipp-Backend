@@ -12,7 +12,6 @@ import javax.persistence.Id;
 import javax.persistence.Table;
 import javax.persistence.Temporal;
 import javax.persistence.TemporalType;
-import javax.validation.constraints.NotBlank;
 
 import org.springframework.cache.annotation.Cacheable;
 
@@ -22,8 +21,8 @@ import org.springframework.cache.annotation.Cacheable;
  *
  */
 @Entity
-@Table(name = "flyers")
-@Cacheable(value = "flyers")
+@Table(name = "flyer")
+@Cacheable(value = "flyer")
 public class Flyer implements Serializable {
 
 	private static final long serialVersionUID = -1763574516474353414L;

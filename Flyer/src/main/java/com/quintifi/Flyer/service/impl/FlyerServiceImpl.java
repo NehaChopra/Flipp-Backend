@@ -11,6 +11,7 @@ import org.springframework.util.CollectionUtils;
 import org.springframework.util.ObjectUtils;
 
 import com.quintifi.Flyer.domain.jpa.Flyer;
+import com.quintifi.Flyer.exceptions.ApiExCode;
 import com.quintifi.Flyer.exceptions.ApiException;
 import com.quintifi.Flyer.repository.jpa.FlyerRepository;
 import com.quintifi.Flyer.service.FlyerService;
@@ -33,8 +34,8 @@ public class FlyerServiceImpl implements FlyerService {
 	public List<Flyer> read() throws ApiException {
 		List<Flyer> flyers = flyerRepository.findAll();
 		if (CollectionUtils.isEmpty(flyers)) {
-			LOGGER.error("Error while reading a list of todos");
-			throw new ApiException("TD_404", "Record Not Found!");
+			LOGGER.error("Error while reading a list of flyers");
+			throw new ApiException(ApiExCode.RECORD_NOT_FOUND.getCode(), ApiExCode.RECORD_NOT_FOUND.getMessage());
 		}
 		return flyers;
 	}
@@ -44,11 +45,11 @@ public class FlyerServiceImpl implements FlyerService {
 		try {
 			if (!ObjectUtils.isEmpty(flyer)) {
 				flyerRepository.save(flyer);
-				return added;
+				return flyer.getClicks() + " : " + added;
 			}
 		} catch (Exception e) {
-			LOGGER.error("Error while creating a todo");
-			throw new ApiException("TD_303", "Not a valid record");
+			LOGGER.error("Error while creating a flyer");
+			throw new ApiException(ApiExCode.NOT_VALID_RECORD.getCode(), ApiExCode.NOT_VALID_RECORD.getMessage());
 		}
 		return null;
 	}
@@ -64,13 +65,15 @@ public class FlyerServiceImpl implements FlyerService {
 		Integer mostClickedFlyerNum = 0;
 		for (Flyer f : flyers) {
 			Integer currentClickedFlyper = 0;
-			for (String it : f.getClicks().split(",")) {
-				if (Integer.parseInt(it) >= startTimestamp && Integer.parseInt(it) <= endTimestamp) {
-					currentClickedFlyper += 1;
-				}
-				if (currentClickedFlyper > mostClickedFlyerNum) {
-					mostClickedFlyerNum = currentClickedFlyper;
-					mostClickedFlyer = f;
+			if (!ObjectUtils.isEmpty(f.getClicks())) {
+				for (String it : f.getClicks().split(",")) {
+					if (Integer.parseInt(it) >= startTimestamp && Integer.parseInt(it) <= endTimestamp) {
+						currentClickedFlyper += 1;
+					}
+					if (currentClickedFlyper > mostClickedFlyerNum) {
+						mostClickedFlyerNum = currentClickedFlyper;
+						mostClickedFlyer = f;
+					}
 				}
 			}
 		}
@@ -81,28 +84,30 @@ public class FlyerServiceImpl implements FlyerService {
 	public Flyer readById(Long id) throws ApiException {
 		Optional<Flyer> flyer = flyerRepository.findById(id);
 		if (!flyer.isPresent()) {
-			LOGGER.error("Error while reading a list of todos");
-			throw new ApiException("TD_404", "Record Not Found!");
+			LOGGER.error("Error while reading a list of flyers");
+			throw new ApiException(ApiExCode.RECORD_NOT_FOUND.getCode(), ApiExCode.RECORD_NOT_FOUND.getMessage());
 		}
-		return null;
+		return flyer.get();
 	}
 
 	@Override
 	public String edit(Flyer flyer, Integer numClick, Integer timestampClick) throws ApiException {
-		Optional<Flyer> fly = flyerRepository.findById(id);
+		Optional<Flyer> fly = flyerRepository.findById(flyer.getId());
 		if (!fly.isPresent()) {
-			LOGGER.error("Error while reading a list of todos");
-			throw new ApiException("TD_404", "Record Not Found!");
+			LOGGER.error("Error while reading a list of flyers");
+			throw new ApiException(ApiExCode.RECORD_NOT_FOUND.getCode(), ApiExCode.RECORD_NOT_FOUND.getMessage());
 		}
-		String[] flyClicks = flyer.getClicks().split(",");
-		if (flyClicks.length < numClick) {
-			fly.get().setClicks(flyer.getClicks());
+		StringBuilder sb = new StringBuilder();
+		sb.append(fly.get().getClicks()).append(",").append(flyer.getClicks());
+		String[] flyClicks = sb.toString().split(",");
+		String[] inputClicks = flyer.getClicks().split(",");
+		if (flyClicks.length > numClick && (Integer.parseInt(inputClicks[inputClicks.length - 1]) == timestampClick)) {
+			return Unsuccessful;
+		} else {
+			fly.get().setClicks(sb.toString());
 			flyerRepository.save(fly.get());
 			return added;
-		} else {
-			return Unsuccessful;
 		}
-		return null;
 	}
 
 }

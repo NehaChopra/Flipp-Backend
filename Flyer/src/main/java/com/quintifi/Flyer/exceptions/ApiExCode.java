@@ -7,8 +7,7 @@ package com.quintifi.Flyer.exceptions;
  */
 public enum ApiExCode implements ExceptionCodes {
 
-	ORIGIN_NOT_FOUND("GL_OR404", "Invalid Origin"), DESTINATION_NOT_FOUND("GL_DT404", "Invalid Destination"), NO_ROUTE(
-			"GL_NR404", "No Route"), INTERNAL_SERVER_ERROR("GL_500", "Internal Server Error"),;
+	RECORD_NOT_FOUND("FY_404", "Record Not Found!"), NOT_VALID_RECORD("TD_303", "Not a valid record"),;
 
 	private String code;
 	private String message;
